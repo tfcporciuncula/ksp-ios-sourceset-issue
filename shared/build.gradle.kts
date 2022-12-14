@@ -38,6 +38,11 @@ kotlin {
             iosX64Main.dependsOn(this)
             iosArm64Main.dependsOn(this)
             iosSimulatorArm64Main.dependsOn(this)
+
+            // Choose one of the generated targets to be used in the common source-set
+            // Here I'm using iOS x64, but you can choose anyone you want that inherits
+            // from this source-set
+            kotlin.srcDir("build/generated/ksp/iosX64/iosX64Main/kotlin")
         }
         val iosX64Test by getting
         val iosArm64Test by getting
@@ -54,10 +59,21 @@ kotlin {
     // https://github.com/google/ksp/issues/965
     // https://github.com/evant/kotlin-inject/issues/193
     targets.configureEach {
+        // Skip adding native targets here because we're adding it manually to the shared source below
+        if (platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native) return@configureEach
         compilations.configureEach {
             kotlinSourceSets.forEach { sourceSet ->
                 sourceSet.kotlin.srcDir("build/generated/ksp/$targetName/${sourceSet.name}/kotlin")
             }
+        }
+    }
+
+
+    // Link the build step to generate linked source-sets for other targets
+    // Here, only linking on othes iOS compile tasks
+    tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
+        if (name.startsWith("compileKotlinIos") && name != "compileKotlinIosX64") {
+            dependsOn("compileKotlinIosX64")
         }
     }
 }
@@ -68,8 +84,10 @@ dependencies {
     // https://github.com/google/ksp/pull/1021
     add("kspAndroid", "me.tatarka.inject:kotlin-inject-compiler-ksp:0.5.1")
     add("kspIosX64", "me.tatarka.inject:kotlin-inject-compiler-ksp:0.5.1")
-    add("kspIosArm64", "me.tatarka.inject:kotlin-inject-compiler-ksp:0.5.1")
-    add("kspIosSimulatorArm64", "me.tatarka.inject:kotlin-inject-compiler-ksp:0.5.1")
+
+    // Removed other targets to avoid conflicts
+//    add("kspIosArm64", "me.tatarka.inject:kotlin-inject-compiler-ksp:0.5.1")
+//    add("kspIosSimulatorArm64", "me.tatarka.inject:kotlin-inject-compiler-ksp:0.5.1")
 }
 
 android {
