@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "ksp-ios-sourceset-issue"
 include(":androidApp")
 include(":shared")
+include(":db")
