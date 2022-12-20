@@ -14,6 +14,7 @@ kotlin {
     ).forEach {
         it.binaries.framework {
             baseName = "shared"
+//            linkerOpts.add("-lsqlite3") // iOS build only works with this
             export(project(":db"))
         }
     }
